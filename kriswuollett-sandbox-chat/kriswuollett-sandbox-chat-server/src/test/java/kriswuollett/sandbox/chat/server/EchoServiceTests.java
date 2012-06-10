@@ -17,10 +17,12 @@ package kriswuollett.sandbox.chat.server;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -35,41 +37,19 @@ import org.junit.Test;
 public class EchoServiceTests
 {
     private ExecutorService execSvc = Executors.newFixedThreadPool( 3 );
+    private BufferedReader in;
+    private BufferedWriter out;
+    private Socket serviceSocket;
+    private EchoServer server;
+    private Thread serverThread;
     
     @Test
     public void testSimpleMessage() throws Exception
     {
-        final EchoServer server = new EchoServer();
-        final Thread serverThread = new Thread( server, "EchoServiceServer" );
-
-        serverThread.start();
-
-        Thread.yield();
-
+        connect();
+        
         try
         {
-            if ( !server.getStatus().isOpen() )
-            {
-                synchronized (server.getStatus())
-                {
-                    server.getStatus().wait( 5000 );
-                }
-            }
-
-            Assert.assertTrue( "server not open", server.getStatus().isOpen() );
-            Assert.assertTrue( "server port <= 0", server.getPort() > 0 );
-            
-            // Time to exercise some old-school Java network programming
-            
-            final InetAddress serviceAddress = InetAddress.getByName( "127.0.0.1" );
-            
-            final Socket serviceSocket = new Socket( serviceAddress, server.getPort() );
-            
-            Assert.assertTrue( "service socket not connected", serviceSocket.isConnected() );
-            
-            final BufferedReader in = new BufferedReader( new InputStreamReader( serviceSocket.getInputStream() ) );
-            final BufferedWriter out = new BufferedWriter( new OutputStreamWriter( serviceSocket.getOutputStream() ) );
-            
             final String expectedMessage = "Hello World!";
             
             sendMessage( out, expectedMessage );
@@ -79,7 +59,7 @@ public class EchoServiceTests
         }
         finally
         {
-            server.stop();
+            server.close();
 
             serverThread.join( 5000 );
 
@@ -88,6 +68,116 @@ public class EchoServiceTests
         }
 
         Assert.assertFalse( "server is still open", server.getStatus().isOpen() );
+    }
+
+    @Test
+    public void testMultipleMessages() throws Exception
+    {
+        connect();
+        
+        try
+        {
+            final String[] expectedMessages = new String[] { 
+                    "Hello World!",
+                    "Welcome!",
+                    "This is my third message.",
+                    "Did you get them all?"
+            };
+            
+            sendMessages( out, expectedMessages );
+            
+            for ( final String expectedMessage : expectedMessages )
+                Assert.assertEquals( "message did not match", expectedMessage, recvMessage( in ) );
+            
+            serviceSocket.close();
+        }
+        finally
+        {
+            server.close();
+
+            serverThread.join( 5000 );
+
+            if ( serverThread.isAlive() )
+                throw new RuntimeException( "The thread " + serverThread.getName() + " is still alive" );
+        }
+
+        Assert.assertFalse( "server is still open", server.getStatus().isOpen() );
+    }
+
+    @Test
+    public void testMultipleMessagesBatches() throws Exception
+    {
+        connect();
+        
+        try
+        {
+            final String[] expectedMessages = new String[] { 
+                    "Hello World!",
+                    "Welcome!",
+                    "This is my third message.",
+                    "Did you get them all?"
+            };
+            
+            sendMessages( out, expectedMessages );
+            
+            for ( final String expectedMessage : expectedMessages )
+                Assert.assertEquals( "message did not match", expectedMessage, recvMessage( in ) );
+            
+            sendMessages( out, expectedMessages );
+            
+            for ( final String expectedMessage : expectedMessages )
+                Assert.assertEquals( "message did not match", expectedMessage, recvMessage( in ) );
+
+            sendMessages( out, expectedMessages );
+            
+            for ( final String expectedMessage : expectedMessages )
+                Assert.assertEquals( "message did not match", expectedMessage, recvMessage( in ) );
+
+            serviceSocket.close();
+        }
+        finally
+        {
+            server.close();
+
+            serverThread.join( 5000 );
+
+            if ( serverThread.isAlive() )
+                throw new RuntimeException( "The thread " + serverThread.getName() + " is still alive" );
+        }
+
+        Assert.assertFalse( "server is still open", server.getStatus().isOpen() );
+    }
+
+    private void connect() throws InterruptedException, UnknownHostException,
+            IOException
+    {
+        server = new EchoServer();
+        serverThread = new Thread( server, "EchoServiceServer" );
+
+        serverThread.start();
+
+        Thread.yield();
+        if ( !server.getStatus().isOpen() )
+        {
+            synchronized (server.getStatus())
+            {
+                server.getStatus().wait( 5000 );
+            }
+        }
+        
+        Assert.assertTrue( "server not open", server.getStatus().isOpen() );
+        Assert.assertTrue( "server port <= 0", server.getPort() > 0 );
+        
+        // Time to exercise some old-school Java network programming
+        
+        final InetAddress serviceAddress = InetAddress.getByName( "127.0.0.1" );
+        
+        serviceSocket = new Socket( serviceAddress, server.getPort() );
+        
+        Assert.assertTrue( "service socket not connected", serviceSocket.isConnected() );
+        
+        in = new BufferedReader( new InputStreamReader( serviceSocket.getInputStream() ) );
+        out = new BufferedWriter( new OutputStreamWriter( serviceSocket.getOutputStream() ) );
     }
 
     private void sendMessage( final BufferedWriter out, final String message )
@@ -107,6 +197,25 @@ public class EchoServiceTests
         task.get( 1000, TimeUnit.MILLISECONDS );
     }
     
+    private void sendMessages( final BufferedWriter out, final String... messages )
+            throws InterruptedException, ExecutionException, TimeoutException
+    {
+        final Future<Void> task = execSvc.submit( new Callable<Void>()
+        {
+            @Override
+            public Void call() throws Exception
+            {
+                for ( final String message : messages )
+                    out.write( message + "\n" );    
+                
+                out.flush();
+                return null;
+            }
+        } );
+        
+        task.get( 1000, TimeUnit.MILLISECONDS );
+    }
+
     private String recvMessage( final BufferedReader in )
             throws InterruptedException, ExecutionException, TimeoutException
     {
