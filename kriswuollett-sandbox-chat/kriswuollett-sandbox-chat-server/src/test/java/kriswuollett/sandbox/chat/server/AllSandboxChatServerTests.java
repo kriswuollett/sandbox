@@ -15,14 +15,14 @@
  */
 package kriswuollett.sandbox.chat.server;
 
-/**
- * Hello world!
- *
- */
-public class App 
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+    EchoServiceTests.class
+})
+
+public class AllSandboxChatServerTests 
 {
-    public static void main( String[] args )
-    {
-        System.out.println( "Hello World!" );
-    }
 }

@@ -16,13 +16,44 @@
 package kriswuollett.sandbox.chat.server;
 
 /**
- * Hello world!
  *
  */
-public class App 
+public class EchoServer implements Runnable
 {
-    public static void main( String[] args )
+    private Status status = new Status();
+    
+    public EchoServer()
     {
-        System.out.println( "Hello World!" );
+        
+    }
+
+    public class Status
+    {
+        private volatile boolean open = false;
+        
+        public boolean isOpen()
+        {
+            return open;
+        }
+    }
+
+    public Status getStatus()
+    {
+        return status;
+    }
+    
+    public int getPort()
+    {
+        return -1;
+    }
+    
+    @Override
+    public void run()
+    {
+    }
+
+    public void stop()
+    {
+        
     }
 }
