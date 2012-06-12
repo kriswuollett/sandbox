@@ -28,7 +28,7 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 /**
- *
+ * TODO Implement an echo server using a single ring buffer per client for more simple design
  */
 public class EchoServer implements Runnable
 {
@@ -48,10 +48,9 @@ public class EchoServer implements Runnable
     
     private long selectPass = 0;
     
-    public EchoServer()
-    {
-        
-    }
+    private int inBufferSize = 32;
+    
+    private int outBufferSize = 32;
 
     public class Status
     {
@@ -72,6 +71,16 @@ public class EchoServer implements Runnable
     {
         return port;
     }
+    
+    public int getInBufferSize()
+    {
+        return inBufferSize;
+    }
+
+    public int getOutBufferSize()
+    {
+        return outBufferSize;
+    }    
     
     @Override
     public void run()
@@ -168,12 +177,11 @@ public class EchoServer implements Runnable
         {
             final Socket           socket     = socketChannel.socket();
             final String           clientName = String.format( "%s:%d", socket.getInetAddress().getHostAddress(), socket.getPort() );
-            final EchoServerClient client     = new EchoServerClient( clientName );
-            
+            final EchoServerClient client     = new EchoServerClient( clientName, inBufferSize, outBufferSize );
+
             socketChannel.register( selector, SelectionKey.OP_READ, client );
             
             log.info( String.format( "Accepted client %s", client.getName() ) );
-            
         }
         catch ( ClosedChannelException e )
         {
@@ -185,36 +193,23 @@ public class EchoServer implements Runnable
     {
         final EchoServerClient client        = ( EchoServerClient ) key.attachment();
         final SocketChannel    socketChannel = ( SocketChannel    ) key.channel();
-        final int              interestOps   = key.interestOps();
+
+        client.read( socketChannel );
         
-        if ( client.read( socketChannel ) 
-                && ( interestOps & SelectionKey.OP_WRITE ) == 0 )
-        {
-            log.info( String.format( "Registering for write on client %s", client.getName() ) );
-            
-            key.interestOps( interestOps | SelectionKey.OP_WRITE );
-        }
-        
-        checkPostConditions( client, socketChannel );
+        postProcess( client, socketChannel, key );
     }
 
     private void write( SelectionKey key )
     {
         final EchoServerClient client = ( EchoServerClient ) key.attachment();
         final SocketChannel    socketChannel = ( SocketChannel    ) key.channel();
-        final int              interestOps   = key.interestOps();
         
-        if ( !client.write( socketChannel ) )
-        {
-            log.info( String.format( "Unregistering from write on client %s", client.getName() ) );
-            
-            key.interestOps( interestOps & ~SelectionKey.OP_WRITE );
-        }
-
-        checkPostConditions( client, socketChannel );
+        client.write( socketChannel );
+        
+        postProcess( client, socketChannel,key );
     }
 
-    private void checkPostConditions( EchoServerClient client,  SocketChannel socketChannel )
+    private void postProcess( EchoServerClient client,  SocketChannel socketChannel, SelectionKey key )
     {
         switch ( client.getState() )
         {
@@ -231,7 +226,24 @@ public class EchoServer implements Runnable
                     System.err.println( "Failed to close client socket" );
                     e.printStackTrace( System.err );
                 }
+                
+                return;
             }
+        }
+        
+        // Avoid setting new interest ops if possible
+        
+        int newInterestOps = client.getReadCapacity() > 0
+                           ? SelectionKey.OP_READ
+                           : 0;
+        
+        if ( client.getPendingWriteSize() > 0 )
+            newInterestOps |= SelectionKey.OP_WRITE;
+        
+        if ( newInterestOps != key.interestOps() )
+        {
+            log.info( String.format( "Changing client %s interest ops from %d to %d", client.getName(), key.interestOps(), newInterestOps ) );
+            key.interestOps( newInterestOps );
         }
     }
     
