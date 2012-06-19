@@ -1,29 +1,29 @@
-name
-annotations
-contributors
-coordinates
-created_at
-current_user_retweet
-delete
-entities
-favorited
-geo
-id
-id_str
-in_reply_to_screen_name
-in_reply_to_status_id
-in_reply_to_status_id_str
-in_reply_to_user_id
-in_reply_to_user_id_str
-limit
-place
-possibly_sensitive
-retweet_count
-retweeted
-scrub_geo
-source
-text
-truncated
-user
-withheld_in_countries
-withheld_scope
+name;description
+annotations;"(Documentation missing)"
+contributors;"(Documentation missing)"
+coordinates;"(Documentation missing)"
+created_at;"UTC creation time."
+current_user_retweet;"(Documentation missing)"
+delete;"(Documentation missing)"
+entities;"(Documentation missing)"
+favorited;"(Documentation missing)"
+geo;"(Documentation missing)"
+id;"signed 64-bit integer ID, use the string version instead"
+id_str;"string version of the ID"
+in_reply_to_screen_name;"(Documentation missing)"
+in_reply_to_status_id;"(Documentation missing)"
+in_reply_to_status_id_str;"(Documentation missing)"
+in_reply_to_user_id;"(Documentation missing)"
+in_reply_to_user_id_str;"(Documentation missing)"
+limit;"(Documentation missing)"
+place;"(Documentation missing)"
+possibly_sensitive;"(Documentation missing)"
+retweet_count;"(Documentation missing)"
+retweeted;"(Documentation missing)"
+scrub_geo;"(Documentation missing)"
+source;"(Documentation missing)"
+text;"(Documentation missing)"
+truncated;"(Documentation missing)"
+user;"(Documentation missing)"
+withheld_in_countries;"(Documentation missing)"
+withheld_scope;"(Documentation missing)"
