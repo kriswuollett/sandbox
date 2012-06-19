@@ -5,3 +5,4 @@ target
 secrets.properties
 sample.*.json
 *.log
+*results.txt
