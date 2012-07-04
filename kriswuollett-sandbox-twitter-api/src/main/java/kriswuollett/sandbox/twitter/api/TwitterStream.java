@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+import kriswuollett.sandbox.twitter.api.streaming.TwitterStreamingRequest;
 import kriswuollett.sandbox.twitter.api.streaming.TwitterStreamingResponse;
 import kriswuollett.sandbox.twitter.api.streaming.gson.GsonTwitterStreamingRequest;
 import kriswuollett.sandbox.twitter.api.streaming.parameters.TwitterStreamParameter;
@@ -75,35 +76,47 @@ public class TwitterStream implements TwitterStreamReader
      */
     public static void main( String[] args ) throws Exception
     {
-        if ( args.length != 2 )
-            throw new IllegalArgumentException( "Usage: <secrets.properties> <track>" );
-        
-        final InputStream secretsInputStream = new FileInputStream( args[ 0 ] );
-        final String track = args[ 1 ];
-        
-        final TwitterStream app = new TwitterStream();
-        
         ConsoleHandler consoleHandler = new ConsoleHandler();
         consoleHandler.setLevel( Level.FINEST );
         LogManager.getLogManager().getLogger( Logger.GLOBAL_LOGGER_NAME ).addHandler( consoleHandler );
         LogManager.getLogManager().getLogger( "" ).addHandler( consoleHandler );
- 
-        final Properties secrets = new Properties();
 
-        secrets.load( secretsInputStream );
+        final TwitterStream app = new TwitterStream();
+
+        final TwitterStreamingRequest req;
         
-        final CommonsHttpOAuthConsumer consumer = new CommonsHttpOAuthConsumer( secrets.getProperty( "twitter.oauth.consumer.key" ), secrets.getProperty( "twitter.oauth.consumer.secret" ) );
-        
-        consumer.setTokenWithSecret( secrets.getProperty( "twitter.oauth.token" ), secrets.getProperty( "twitter.oauth.secret" ) );
+        if ( args.length == 2 )
+        {
+            final InputStream secretsInputStream = new FileInputStream( args[ 0 ] );
+            final String track = args[ 1 ];
+            
+            final Properties secrets = new Properties();
+    
+            secrets.load( secretsInputStream );
+            
+            final CommonsHttpOAuthConsumer consumer = new CommonsHttpOAuthConsumer( secrets.getProperty( "twitter.oauth.consumer.key" ), secrets.getProperty( "twitter.oauth.consumer.secret" ) );
+            
+            consumer.setTokenWithSecret( secrets.getProperty( "twitter.oauth.token" ), secrets.getProperty( "twitter.oauth.secret" ) );
+            
+            req = new GsonTwitterStreamingRequest()
+                .setListener( app )
+                .setOAuthConsumer( consumer )
+                .setParameters( TwitterStreamParameter.Track( track ) );
+        }
+        else if ( args.length == 1 )
+        {
+            req = new GsonTwitterStreamingRequest()
+                .setListener( app )
+                .setInputStream( new FileInputStream( args[ 0 ] ) );
+        }
+        else
+        {
+            throw new IllegalArgumentException( "Usage: <secrets.properties> <track> | <input file>" ); 
+        }
         
         final ExecutorService execSvc = Executors.newFixedThreadPool( 1 );
         
-        final Future<TwitterStreamingResponse> rspTask = execSvc.submit( 
-                new GsonTwitterStreamingRequest()
-                    .setListener( app )
-                    .setOAuthConsumer( consumer )
-                    .setParameters( TwitterStreamParameter.Track( track ) )
-        );
+        final Future<TwitterStreamingResponse> rspTask = execSvc.submit( req ); 
         
         final TwitterStreamingResponse rsp = rspTask.get();
         

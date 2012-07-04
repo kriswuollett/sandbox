@@ -15,6 +15,7 @@
  */
 package kriswuollett.sandbox.twitter.api.streaming;
 
+import java.io.InputStream;
 import java.util.concurrent.Callable;
 
 import kriswuollett.sandbox.twitter.api.TwitterStreamReader;
@@ -27,6 +28,9 @@ import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
  */
 public interface TwitterStreamingRequest extends Callable<TwitterStreamingResponse>
 {
+    /* TODO replace separate input stream and oauthconsumer calls with a setSource method */
+    public abstract TwitterStreamingRequest setInputStream( final InputStream inputStream );
+    
     public abstract TwitterStreamingRequest setOAuthConsumer( final CommonsHttpOAuthConsumer consumer );
     
     public abstract TwitterStreamingRequest setListener( final TwitterStreamReader listener );

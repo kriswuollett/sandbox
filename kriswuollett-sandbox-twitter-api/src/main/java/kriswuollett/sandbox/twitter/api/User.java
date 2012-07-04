@@ -18,26 +18,24 @@ package kriswuollett.sandbox.twitter.api;
 /**
  * @author kris
  */
-public interface User extends Cloneable
+public interface User extends TwitterStreamObject
 {
 
     public abstract void setIdFromString( String id );
 
     public abstract String getIdAsString();
 
-    public abstract void setCreatedAtOffset( int createdAtOffset );
+    public abstract void setScreenName( String screenName );
 
-    public abstract int getCreatedAtOffset();
-
-    public abstract void setCreatedAt( long createdAt );
-
-    public abstract long getCreatedAt();
-
-    public abstract void setScreenNameAsString( String screenName );
-
-    public abstract String getScreenNameAsString();
+    public abstract String getScreenName();
 
 	public abstract User clone();
 
-	public abstract void clear();
+    public abstract void setName( String name );
+
+    public abstract String getName();
+
+    public abstract void setDescription( String description );
+
+    public abstract String getDescription();
 }

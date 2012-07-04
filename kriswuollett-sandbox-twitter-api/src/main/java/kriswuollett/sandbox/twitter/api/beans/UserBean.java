@@ -15,6 +15,7 @@
  */
 package kriswuollett.sandbox.twitter.api.beans;
 
+import kriswuollett.sandbox.twitter.api.TwitterStreamObjectType;
 import kriswuollett.sandbox.twitter.api.User;
 
 /**
@@ -22,39 +23,15 @@ import kriswuollett.sandbox.twitter.api.User;
  */
 public class UserBean implements User
 {
-    
-    private long createdAt;
-
-    private int createdAtOffset;
 
     private String id;
     
     private String screenName;
+
+    private String description;
     
-    @Override
-    public long getCreatedAt()
-    {
-        return createdAt;
-    }
-
-    @Override
-    public void setCreatedAt( long createdAt )
-    {
-        this.createdAt = createdAt;
-    }
-
-    @Override
-    public int getCreatedAtOffset()
-    {
-        return createdAtOffset;
-    }
-
-    @Override
-    public void setCreatedAtOffset( int createdAtOffset )
-    {
-        this.createdAtOffset = createdAtOffset;
-    }
-
+    private String name;
+    
     @Override
     public String getIdAsString()
     {
@@ -68,13 +45,13 @@ public class UserBean implements User
     }
     
     @Override
-    public String getScreenNameAsString()
+    public String getScreenName()
     {
         return screenName;
     }
     
     @Override
-    public void setScreenNameAsString( String screenName )
+    public void setScreenName( String screenName )
     {
         this.screenName = screenName;
     }    
@@ -82,8 +59,8 @@ public class UserBean implements User
     @Override
     public void clear()
     {
-        createdAt = 0;
-        createdAtOffset = 0;
+        id = null;
+        screenName = null;
     }
     
     @Override
@@ -99,5 +76,42 @@ public class UserBean implements User
         {
             throw new RuntimeException( e );
         }
+    }
+
+    @Override
+    public TwitterStreamObjectType getType()
+    {
+        return TwitterStreamObjectType.USER;
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return description;
+    }
+
+    @Override
+    public void setDescription( String description )
+    {
+        this.description = description;
+    }
+
+    @Override
+    public String getName()
+    {
+        return name;
+    }
+
+    @Override
+    public void setName( String name )
+    {
+        this.name = name;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "UserBean [id=" + id + ", screenName=" + screenName
+                + ", description=" + description + ", name=" + name + "]";
     } 
 }

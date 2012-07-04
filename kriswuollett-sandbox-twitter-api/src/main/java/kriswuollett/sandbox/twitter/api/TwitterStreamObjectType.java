@@ -20,5 +20,5 @@ package kriswuollett.sandbox.twitter.api;
  */
 public enum TwitterStreamObjectType
 {
-    TWEET, DELETE, SCRUB_GEO, LIMIT, ARRAY
+    TWEET, DELETE, SCRUB_GEO, LIMIT, ARRAY, USER
 }
