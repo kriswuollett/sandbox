@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Copyright (c) 2012, Kristopher Wuollett
+# All rights reserved.
+#
+# This file is part of kriswuollett/compute.
+#
+# kriswuollett/compute is free software: you can redistribute it and/or modify
+# it under the terms of the BSD 3-Clause License as written in the COPYING
+# file.
+#
+
+COUNT="$1"
+COMPUTE="$2"
+
+usage() {
+  echo "usage compute_add_test count <gpu|cpu>"
+}
+
+fail() {
+  echo "$1" >&2
+  usage
+  exit 1
+}
+
+[ ! -z "${COUNT}" ] || fail "Count was missing"
+[ ${COUNT} -gt 0 ] || fail "Count was not greater than 0"
+
+[[ "${COMPUTE}" != "cpu" || "${COMPUTE}" != "gpu"  ]] \
+	|| fail "Compute must be cpu or gpu"
+
+BYTES=$((${COUNT} * 4))
+
+paste \
+	<(cat /dev/urandom | od -N${BYTES} -An -f -v -w4 | sed 's/nan/0/g') \
+	<(cat /dev/urandom | od -N${BYTES} -An -f -v -w4 | sed 's/nan/0/g') \
+       	| ./compute_add ${COMPUTE} -
