@@ -37,4 +37,4 @@ file.
 References
 ==========
 
-[COPYING]: COPYING
+[COPYING]: https://raw.github.com/kriswuollett/sandbox/master/compute/COPYING
