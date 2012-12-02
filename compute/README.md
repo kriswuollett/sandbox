@@ -37,4 +37,4 @@ file.
 References
 ==========
 
-[COPYING]: COPYING
+[compute/COPYING]: COPYING
