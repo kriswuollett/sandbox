@@ -1,0 +1,7 @@
+{
+    "python.formatting.yapfArgs": [
+        "--style=${workspaceFolder}/.config/yapf",
+        "--verbose"
+    ],
+    "python.formatting.provider": "yapf"
+}
