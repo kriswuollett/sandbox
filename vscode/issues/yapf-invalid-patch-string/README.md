@@ -1,3 +1,5 @@
+## Issue
+
 Formatting the file `somemodule/test.py` in Visual Studio Code yields the following error in the Python console:
 
 ```
@@ -22,3 +24,7 @@ Reformatting /Users/kris/workspace/github.com/kriswuollett/sandbox/vscode/issues
 -    sys.exit    (main(sys.argv))
 +    sys.exit(main(sys.argv))
 ```
+
+## Workaround
+
+Do not add flags like `--verbose` which changes `stdout` with the patch.
