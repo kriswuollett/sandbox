@@ -1,0 +1,2 @@
+build --workspace_status_command="bash get_workspace_status.sh"
+build --stamp
