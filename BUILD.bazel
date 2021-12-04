@@ -1,0 +1,55 @@
+load("@io_bazel_rules_docker//container:container.bzl", "container_image")
+load("@io_bazel_rules_docker//docker/util:run.bzl", "container_run_and_commit")
+
+genrule(
+    name = "doc1",
+    srcs = [
+        ":README.md",
+    ],
+    outs = ["doc1.tar"],
+    cmd = """
+        mkdir .doc1
+        cp $(location README.md) .doc1/
+        tar -cf $(location doc1.tar) .doc1
+    """,
+)
+
+genrule(
+    name = "doc2",
+    srcs = [
+        ":README.md",
+    ],
+    outs = ["doc2.tar"],
+    cmd = """
+        mkdir doc2
+        cp $(location README.md) doc2
+        tar -cf $(location doc2.tar) doc2
+    """,
+)
+
+
+container_run_and_commit(
+    name = "alpine_3_15_0",
+    commands = [
+        "apk add --no-cache bash tree",
+    ],
+    image = "@alpine_3_15_0//image",
+)
+
+container_image(
+    name = "alpine_3_15_0_image",
+    base = ":alpine_3_15_0",
+)
+
+
+container_image(
+    name = "image",
+    base = ":alpine_3_15_0_image.tar",
+    data_path = "/",
+    directory = "/a/b",
+    workdir = "/a/b",
+    tars = [
+        ":doc1.tar",
+        ":doc2.tar",
+    ],
+)
