@@ -11,3 +11,14 @@ container_run_and_commit_layer(
     ],
     image = "@alpine_3_15_0//image",
 )
+
+cc_library(
+    name = "stamp",
+    linkstamp = "stamp.cc",
+)
+
+cc_binary(
+    name = "hello_world",
+    srcs = ["hello_world.cc"],
+    deps = [":stamp"],
+)
