@@ -1,0 +1,33 @@
+load("@bazel_tools//tools/build_defs/pkg:pkg.bzl", "pkg_tar")
+
+pkg_tar(
+    name = "node-modules",
+    srcs = [
+        "@npm//:node_modules",
+    ],
+    # Remap external repo files.
+    # https://github.com/bazelbuild/rules_pkg/issues/251#issuecomment-499464418
+    remap_paths = {
+        "../npm/": "/",
+    },
+    # Don't flatten directories.
+    # https://github.com/bazelbuild/rules_docker/issues/317
+    strip_prefix = "/",
+)
+
+pkg_tar(
+    name = "test",
+    srcs = glob(["dir_a/**", ".dot/**"]),
+    strip_prefix = "/",
+)
+
+genrule(
+    name = "npm_files",
+    srcs = [
+        "@npm//:node_modules",
+    ],
+    outs = ["app-npm_files.txt"],
+    cmd = """
+        echo $(locations @npm//:node_modules) | tr ' ' '\n' > $(location app-npm_files.txt)
+    """,    
+)
