@@ -1,5 +1,9 @@
 # rules_docker_dot_dir
 
+Example code for a dot dir in tar file referenced by `container_image` name gets squashed: [bazelbuild/rules_docker#1974](https://github.com/bazelbuild/rules_docker/issues/1974).
+
+## Example
+
 Run `./test.sh` to see dot directory issue with `container_image` from tar files.
 
 Given a tar file with a `doc2` directory and another with a `.doc1` directory.
